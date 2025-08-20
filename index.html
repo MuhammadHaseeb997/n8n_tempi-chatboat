@@ -2,49 +2,299 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>n8n Chatbot</title>
+  <title>AI Chatbot</title>
   <style>
     :root {
-      --chat--color-primary: #2563eb;
-      --chat--color-secondary: #1e3a8a;
-      --chat--background-color: #ffffff;
-      --chat--font-color: #111827;
-      --chat--window--width: 400px;
-      --chat--window--height: 600px;
+      --primary: #2563eb;
+      --secondary: #1e3a8a;
+      --bg: #ffffff;
+      --text: #111827;
     }
-    body, html {
+    
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      display: flex;
+      padding: 20px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .chat-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+      overflow: hidden;
+    }
+    
+    .chat-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 18px;
+    }
+    
+    /* Hide the n8n default header */
+    #n8n-chat .chat-header {
+      display: none !important;
+    }
+    
+    /* Style n8n chat messages with much better alignment */
+    #n8n-chat .message {
+      margin: 16px 40px !important; /* Much larger margins */
+      padding: 18px 24px !important; /* Larger padding */
+      border-radius: 22px !important;
+      max-width: 80% !important;
+      word-wrap: break-word;
+      line-height: 1.6 !important;
+      font-size: 15px !important;
+    }
+    
+    #n8n-chat .message.user {
+      background: var(--primary) !important;
+      color: white !important;
+      margin-left: auto !important;
+      margin-right: 40px !important;
+      border-bottom-right-radius: 10px !important;
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.25) !important;
+      float: right !important;
+      clear: both !important;
+    }
+    
+    #n8n-chat .message.bot {
+      background: #f1f5f9 !important;
+      color: var(--text) !important;
+      margin-right: auto !important;
+      margin-left: 40px !important;
+      border-bottom-left-radius: 10px !important;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1) !important;
+      border-left: 4px solid var(--primary) !important;
+      float: left !important;
+      clear: both !important;
+    }
+    
+    /* Beautiful input box styling - make it fill the entire area */
+    #n8n-chat .chat-input-container {
+      padding: 0 !important; /* Remove padding to fill entire area */
+      border-top: 1px solid #e2e8f0;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 0 0 16px 16px; /* Match container border radius */
+    }
+    
+    #n8n-chat .chat-input {
+      width: 100% !important;
+      padding: 20px 25px !important; /* Much larger padding */
+      border: none !important; /* Remove border */
+      border-radius: 0 0 16px 16px !important; /* Match container border radius */
+      font-size: 16px !important;
+      box-sizing: border-box;
+      background: transparent !important; /* Transparent background */
+      box-shadow: none !important; /* Remove shadow */
+      transition: all 0.3s ease;
+      min-height: 60px !important; /* Ensure minimum height */
+    }
+    
+    #n8n-chat .chat-input:focus {
+      outline: none !important;
+      background: rgba(255, 255, 255, 0.8) !important; /* Slight white background on focus */
+    }
+    
+    #n8n-chat .chat-input::placeholder {
+      color: #64748b !important;
+      font-style: normal !important;
+      font-size: 16px !important;
+    }
+    
+    /* Blue send button */
+    #n8n-chat .send-btn,
+    #n8n-chat button,
+    #n8n-chat [class*="send"],
+    #n8n-chat [class*="button"] {
+      background: var(--primary) !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 50% !important;
+      width: 50px !important;
+      height: 50px !important;
+      cursor: pointer !important;
+      margin: 15px 25px !important; /* Position button with proper margins */
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3) !important;
+      transition: all 0.3s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: absolute !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 1000 !important;
+      font-size: 18px !important;
+    }
+    
+    /* Add send icon using CSS */
+    #n8n-chat .send-btn::before,
+    #n8n-chat button::before {
+      content: "➤" !important; /* Send arrow icon */
+      font-weight: bold !important;
+      transform: rotate(90deg) !important; /* Rotate to point right */
+    }
+    
+    #n8n-chat .send-btn:hover,
+    #n8n-chat button:hover {
+      background: var(--secondary) !important;
+      transform: scale(1.05) !important;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+    }
+    
+    #n8n-chat .send-btn:active,
+    #n8n-chat button:active {
+      transform: scale(0.95) !important;
+    }
+    
+    /* Loading state styling */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
       align-items: center;
       justify-content: center;
-      background: #f3f4f6;
+      z-index: 1000;
     }
+    
+    .loading-overlay.show {
+      display: flex;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e5e7eb;
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: var(--primary);
+      font-weight: 500;
+      margin-top: 16px;
+    }
+    
+    /* Make chat area wider */
     #n8n-chat {
-      width: var(--chat--window--width);
-      height: var(--chat--window--height);
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      width: 100% !important;
+      height: 600px !important;
+    }
+    
+    /* Clear floats */
+    #n8n-chat::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .chat-container {
+        max-width: 95vw;
+      }
+      
+      #n8n-chat .message {
+        margin: 12px 25px !important;
+        padding: 16px 20px !important;
+        max-width: 85% !important;
+      }
+      
+      #n8n-chat .chat-input {
+        padding: 18px 20px !important;
+      }
+      
+      #n8n-chat .send-btn {
+        margin: 12px 20px !important;
+        width: 45px !important;
+        height: 45px !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="n8n-chat"></div>
+  <div class="chat-container">
+    <div class="chat-header">
+      💬 AI Assistant
+    </div>
+    
+    <!-- n8n chat will be inserted here -->
+    <div id="n8n-chat" style="height: 600px; position: relative;">
+      <!-- Custom loading overlay -->
+      <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Thinking...</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
-    createChat({
+    // Show loading state
+    function showLoading() {
+      document.getElementById('loadingOverlay').classList.add('show');
+    }
+    
+    // Hide loading state
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+    // Create chat instance
+    const chat = createChat({
       element: document.getElementById('n8n-chat'),
       webhookUrl: 'https://haseeb-automation.app.n8n.cloud/webhook/3dbe6547-a90a-47e4-bc03-b728cc2d711f/chat',
-      mode: 'fullscreen',       // shows full chat window with input + send button
+      mode: 'fullscreen',
       openOnStart: true,
-      showHeader: true,
+      showHeader: false, // Hide n8n header since we have custom one
       loadPreviousSession: true,
-      responseMode: 'lastNode', // makes sure you get the last node’s text back
+      responseMode: 'lastNode',
+    });
+
+    // Listen for chat events to show/hide loading
+    document.addEventListener('DOMContentLoaded', () => {
+      // Show loading when user types
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList') {
+            // Check if user message was added
+            const userMessages = document.querySelectorAll('#n8n-chat .message.user');
+            if (userMessages.length > 0) {
+              showLoading();
+              
+              // Hide loading after a delay (you can adjust this)
+              setTimeout(() => {
+                hideLoading();
+              }, 2000);
+            }
+          }
+        });
+      });
+
+      // Start observing
+      observer.observe(document.getElementById('n8n-chat'), {
+        childList: true,
+        subtree: true
+      });
     });
   </script>
 </body>
