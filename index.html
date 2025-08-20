@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>n8n Chatbot</title>
+  <style>
+    :root {
+      --chat--color-primary: #2563eb;
+      --chat--color-secondary: #1e3a8a;
+      --chat--background-color: #ffffff;
+      --chat--font-color: #111827;
+      --chat--window--width: 400px;
+      --chat--window--height: 600px;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f4f6;
+    }
+    #n8n-chat {
+      width: var(--chat--window--width);
+      height: var(--chat--window--height);
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <div id="n8n-chat"></div>
+
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+    createChat({
+      element: document.getElementById('n8n-chat'),
+      webhookUrl: 'https://haseeb-automation.app.n8n.cloud/webhook/3dbe6547-a90a-47e4-bc03-b728cc2d711f/chat',
+      mode: 'fullscreen',       // shows full chat window with input + send button
+      openOnStart: true,
+      showHeader: true,
+      loadPreviousSession: true,
+      responseMode: 'lastNode', // makes sure you get the last node’s text back
+    });
+  </script>
+</body>
+</html>
